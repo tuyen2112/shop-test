@@ -1,31 +1,517 @@
-import React from "react";
-import { useParams } from "react-router-dom";
-
-const products = [
-  { id: 1, name: "Áo Thun Nam", price: "200.000 VND", description: "Áo thun nam chất liệu cotton thoáng mát.", image: "https://via.placeholder.com/150" },
-  { id: 2, name: "Quần Jean Nam", price: "100.000 VND", description: "Quần jean nam phong cách Hàn Quốc.", image: "https://via.placeholder.com/150" },
-  { id: 3, name: "Quần Nỉ Nam", price: "600.000 VND", description: "Quần nỉ mềm mại, giữ ấm tốt.", image: "https://via.placeholder.com/150" },
-];
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Tab } from '@headlessui/react';
+import { ShoppingCart, X, Search } from "lucide-react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Detail() {
-  const { id } = useParams();
-  const product = products.find((p) => p.id === parseInt(id));
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialCategory = searchParams.get('category') || "Nam";
+  
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 8;
+  const categories = [
+    {
+      name: "Nam",
+      keywords: ["NAM", "THỜI TRANG NAM", "QUẦN ÁO NAM", "ĐỒ NAM", "FASHION MEN", "MEN"]
+    },
+    {
+      name: "Nữ",
+      keywords: ["NỮ", "THỜI TRANG NỮ", "QUẦN ÁO NỮ", "ĐỒ NỮ", "FASHION WOMEN", "WOMEN"]
+    },
+    {
+      name: "Trẻ em",
+      keywords: ["TRẺ EM", "THỜI TRANG TRẺ EM", "QUẦN ÁO TRẺ EM", "ĐỒ TRẺ EM", "KIDS", "CHILDREN"]
+    }
+  ];
+  const [selectedTab, setSelectedTab] = useState(
+    categories.findIndex(c => c.name === initialCategory)
+  );
+  const navigate = useNavigate();
+  const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
 
-  if (!product) {
-    return <h1 className="text-center text-2xl mt-10">Sản phẩm không tồn tại</h1>;
-  }
+  const subCategories = {
+    Nam: ['Áo thun nam', 'Áo khoác nam', 'Quần jean nam', 'Quần tây nam'],
+    Nữ: ['Áo thun nữ', 'Áo khoác nữ', 'Váy', 'Quần jean nữ'],
+    'Trẻ em': ['Áo thun trẻ em', 'Áo khoác trẻ em', 'Quần trẻ em', 'Váy trẻ em']
+  };
+
+  const filterBySubCategory = (products, category, subCategory) => {
+    return products.filter(product => 
+      product.category === category && 
+      product.name.toLowerCase().includes(subCategory.toLowerCase())
+    );
+  };
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('https://ngochieuwedding.io.vn/api/tuyen/product');
+        const data = await response.json();
+        setProducts(data.data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error:', error);
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const filterProductsByCategory = (category) => {
+    return products.filter(product => product.category === category);
+  };
+
+  const getCurrentPageProducts = (category) => {
+    const filteredProducts = filterProductsByCategory(category);
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    return filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  };
+
+  const getTotalPages = (category) => {
+    const filteredProducts = filterProductsByCategory(category);
+    return Math.ceil(filteredProducts.length / productsPerPage);
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const notifySuccess = () => toast.success('Đã thêm vào giỏ hàng!', {
+    position: "top-right",
+    autoClose: 2000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+  });
+
+  const notifyError = () => toast.error('Vui lòng chọn size và màu sắc!', {
+    position: "top-right",
+    autoClose: 2000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+  });
+
+  const ProductPopup = ({ product, onClose }) => {
+    const handleAddToCart = () => {
+      if (!selectedSize || !selectedColor) {
+        notifyError();
+        return;
+      }
+
+      const cartItem = {
+        id: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.img,
+        size: selectedSize,
+        color: selectedColor,
+        quantity: 1
+      };
+
+      try {
+        const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        currentCart.push(cartItem);
+        localStorage.setItem('cart', JSON.stringify(currentCart));
+        
+        notifySuccess();
+        onClose();
+      } catch (err) {
+        toast.error('Có lỗi xảy ra khi thêm vào giỏ hàng');
+        console.error(err);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="relative">
+            <button 
+              onClick={onClose}
+              className="absolute right-4 top-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="w-full md:w-1/2">
+                  <img 
+                    src={product.img} 
+                    alt={product.name}
+                    className="w-full h-[400px] object-cover rounded-lg"
+                  />
+                </div>
+
+                <div className="w-full md:w-1/2">
+                  <h3 className="text-2xl font-bold mb-4">{product.name}</h3>
+                  <p className="text-xl font-semibold text-yellow-600 mb-4">
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND'
+                    }).format(product.price)}
+                  </p>
+
+                  {/* Màu sắc */}
+                  <div className="mb-6">
+                    <h4 className="font-semibold mb-2">Màu sắc: 
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        {selectedColor || 'Chưa chọn màu'}
+                      </span>
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {product.colors && product.colors.map((color) => (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(color)}
+                          className={`px-4 py-2 border rounded-lg text-sm transition-all
+                            ${selectedColor === color 
+                              ? 'bg-black text-white border-black' 
+                              : 'hover:bg-gray-100 border-gray-300'}`}
+                        >
+                          {color}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Size */}
+                  <div className="mb-6">
+                    <h4 className="font-semibold mb-2">Kích thước: 
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        {selectedSize || 'Chưa chọn size'}
+                      </span>
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {product.sizes && product.sizes.map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setSelectedSize(size)}
+                          className={`w-14 h-14 flex items-center justify-center border rounded-lg text-sm transition-all
+                            ${selectedSize === size 
+                              ? 'bg-black text-white border-black' 
+                              : 'hover:bg-gray-100 border-gray-300'}`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Mô tả */}
+                  <div className="mb-6">
+                    <h4 className="font-semibold mb-2">Mô tả:</h4>
+                    <p className="text-gray-600">{product.description}</p>
+                  </div>
+
+                  {/* Thêm vào giỏ hàng */}
+                  <button
+                    onClick={handleAddToCart}
+                    className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!selectedSize || !selectedColor}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {!selectedSize || !selectedColor 
+                      ? 'Vui lòng chọn size và màu' 
+                      : 'Thêm vào giỏ hàng'
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    if (value.trim()) {
+      setShowSuggestions(true);
+      const searchResults = products.filter(product =>
+        product.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setSearchResults(searchResults);
+    } else {
+      setShowSuggestions(false);
+      setSearchResults([]);
+    }
+  };
+
+  const highlightText = (text) => {
+    if (!searchTerm) return text;
+    const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+    return (
+      <span>
+        {parts.map((part, index) => 
+          part.toUpperCase() === searchTerm.toUpperCase() ? (
+            <span key={index} className="bg-yellow-200">{part}</span>
+          ) : (
+            part
+          )
+        )}
+      </span>
+    );
+  };
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <div className="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <img src={product.image} alt={product.name} className="w-full h-60 object-cover rounded-md" />
-        <h2 className="text-2xl font-bold mt-4">{product.name}</h2>
-        <p className="text-gray-600 text-lg">{product.price}</p>
-        <p className="mt-4 text-gray-700">{product.description}</p>
-        <button className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md w-full">
-          Mua ngay
-        </button>
+    <div className="container mx-auto px-4 py-8">
+      <ToastContainer />
+      <h1 className="text-3xl font-bold text-center mb-8">Sản Phẩm MT Fashion</h1>
+
+      {/* Search Section */}
+      <div className="max-w-xl mx-auto mb-8 relative">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearch}
+            placeholder="Tìm kiếm sản phẩm..."
+            className="w-full pl-12 pr-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-black"
+          />
+          <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
+        </div>
+
+        {/* Suggestions Dropdown với highlight */}
+        {showSuggestions && (
+          <div className="absolute w-full mt-2 bg-white rounded-lg shadow-lg border z-50 max-h-[80vh] overflow-y-auto">
+            {Object.keys(searchResults).length > 0 ? (
+              <div>
+                {searchResults.map(product => (
+                  <div
+                    key={product._id}
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setShowSuggestions(false);
+                    }}
+                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center gap-3"
+                  >
+                    <img 
+                      src={product.img} 
+                      alt={product.name}
+                      className="w-12 h-12 object-cover rounded"
+                    />
+                    <div>
+                      <p className="font-medium">
+                        {highlightText(product.name)}
+                      </p>
+                      <p className="text-sm text-yellow-600">
+                        {new Intl.NumberFormat('vi-VN', {
+                          style: 'currency',
+                          currency: 'VND'
+                        }).format(product.price)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : searchTerm.trim() ? (
+              <div className="px-4 py-3 text-gray-500">
+                Không tìm thấy sản phẩm phù hợp
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
+
+      <Tab.Group selectedIndex={selectedTab} onChange={setSelectedTab}>
+        <Tab.List className="flex space-x-4 border-b border-gray-200 mb-8 relative">
+          {categories.map((category) => (
+            <div
+              key={category.name}
+              className="relative"
+              onMouseEnter={() => setHoveredCategory(category.name)}
+              onMouseLeave={() => setHoveredCategory(null)}
+            >
+              <Tab
+                className={({ selected }) =>
+                  `px-6 py-3 text-lg font-medium outline-none ${
+                    selected
+                      ? 'text-black border-b-2 border-black'
+                      : 'text-gray-500 hover:text-black hover:border-b-2 hover:border-gray-300'
+                  }`
+                }
+              >
+                {category.name}
+              </Tab>
+              
+              {/* Menu dropdown */}
+              {hoveredCategory === category.name && (
+                <div className="absolute left-0 top-full mt-1 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                  {subCategories[category.name].map((subCat) => (
+                    <button
+                      key={subCat}
+                      onClick={() => {
+                        setSelectedSubCategory(subCat);
+                        setSelectedTab(categories.findIndex(c => c.name === category.name));
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 hover:text-black"
+                    >
+                      {subCat}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </Tab.List>
+
+        <Tab.Panels>
+          {categories.map((category) => (
+            <Tab.Panel key={category.name}>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+                </div>
+              ) : (
+                <>
+                  {selectedSubCategory && (
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold mb-4">
+                        {selectedSubCategory}
+                      </h2>
+                      <button
+                        onClick={() => setSelectedSubCategory(null)}
+                        className="text-blue-600 hover:text-blue-800 mb-4"
+                      >
+                        ← Xem tất cả
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                    {(selectedSubCategory 
+                      ? filterBySubCategory(products, category.name, selectedSubCategory)
+                      : getCurrentPageProducts(category.name)
+                    ).map((product) => (
+                      <div
+                        key={product._id}
+                        className="group relative bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-200"
+                      >
+                        <div 
+                          className="aspect-[3/4] overflow-hidden relative cursor-pointer"
+                          onClick={() => setSelectedProduct(product)}
+                        >
+                          <img
+                            src={product.img}
+                            alt={product.name}
+                            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center gap-3">
+                            <button 
+                              onClick={() => navigate(`/product/${product._id}`)}
+                              className="bg-white text-black px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"
+                            >
+                              Xem chi tiết
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedProduct(product);
+                              }}
+                              className="bg-white text-black px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-2"
+                            >
+                              <ShoppingCart className="w-4 h-4" />
+                              Thêm vào giỏ
+                            </button>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <h3 className="text-lg font-medium text-gray-900 mb-2 truncate">
+                            {product.name}
+                          </h3>
+                          <p className="text-yellow-600 font-semibold">
+                            {new Intl.NumberFormat('vi-VN', {
+                              style: 'currency',
+                              currency: 'VND'
+                            }).format(product.price)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {!selectedSubCategory && getTotalPages(category.name) > 1 && (
+                    <div className="mt-8 flex justify-center">
+                      <nav className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === 1
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border'
+                          }`}
+                        >
+                          Trước
+                        </button>
+                        
+                        {[...Array(getTotalPages(category.name))].map((_, index) => (
+                          <button
+                            key={index + 1}
+                            onClick={() => handlePageChange(index + 1)}
+                            className={`px-3 py-1 rounded-md ${
+                              currentPage === index + 1
+                                ? 'bg-black text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border'
+                            }`}
+                          >
+                            {index + 1}
+                          </button>
+                        ))}
+                        
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === getTotalPages(category.name)}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === getTotalPages(category.name)
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border'
+                          }`}
+                        >
+                          Sau
+                        </button>
+                      </nav>
+                    </div>
+                  )}
+                </>
+              )}
+            </Tab.Panel>
+          ))}
+        </Tab.Panels>
+      </Tab.Group>
+
+      {selectedProduct && (
+        <ProductPopup 
+          product={selectedProduct} 
+          onClose={() => {
+            setSelectedProduct(null);
+            setSelectedSize(null);
+            setSelectedColor(null);
+          }}
+        />
+      )}
     </div>
   );
 }
