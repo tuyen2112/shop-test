@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { Facebook, Instagram, Youtube, Phone, Mail, MapPin, User } from 'lucide-react';
+import { Facebook, Instagram, Youtube, Phone, Mail, MapPin, User, Menu, X } from 'lucide-react';
 import Home from "./components/Home/Home";
 import Detail from "./components/Detail/Detail";
 import LoginPage from "./components/Login/LoginPage";
@@ -25,19 +25,38 @@ import { useNavigate } from 'react-router-dom';
 import ProtectedAdminRoute from './components/Admin/ProtectedAdminRoute';
 import NewsManager from "./components/News/NewsManager";
 import NewsDetail from "./components/News/NewsDetail";
-import ProductDetail from './components/Product/ProductDetail';
+import ProductDetail from "./components/Detail/ProductDetail";
+import NotFound from "./components/NotFound/NotFound";
 
-// import { toast } from 'react-hot-toast';
+import { useState, useEffect } from 'react';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
-    // toast.success('Đã đăng xuất thành công!');
+    setIsMobileMenuOpen(false);
     navigate('/');
   };
+
+  const navLinks = [
+    { path: '/', label: 'Trang chủ' },
+    { path: '/detail', label: 'Sản phẩm' },
+    { path: '/news', label: 'Tin tức' },
+    { path: '/take-care', label: 'Chăm sóc' },
+    { path: '/cart', label: 'Giỏ hàng' },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -55,67 +74,151 @@ const Layout = ({ children }) => {
                 support@mtshop.com
               </a>
             </div>
-            <div className="flex items-center space-x-4">
-              <a href="#" className="hover:text-yellow-400">Tìm cửa hàng</a>
-              <a href="#" className="hover:text-yellow-400">Hỗ trợ</a>
-            </div>
+          
           </div>
         </div>
 
         {/* Main navigation */}
-        <nav className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold">MT<span className="text-yellow-500">Shop</span></span>
-            </Link>
-            <div className="flex items-center space-x-8">
-              <Link to="/" className="nav-link hover:text-yellow-500 transition-colors">
-                Trang chủ
+        <nav className={`sticky top-0 z-40 w-full bg-white transition-all duration-300 ${
+          isScrolled ? 'shadow-md' : ''
+        }`}>
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between h-16 md:h-20">
+              {/* Logo */}
+              <Link to="/" className="flex items-center">
+                <span className="text-2xl font-bold">MT<span className="text-yellow-500">Shop</span></span>
               </Link>
-              <Link to="/detail" className="nav-link hover:text-yellow-500 transition-colors">
-                Sản phẩm
-              </Link>
-              <Link to="/news" className="nav-link hover:text-yellow-500 transition-colors">
-                Tin tức
-              </Link>
-              <Link to="/take-care" className="nav-link hover:text-yellow-500 transition-colors">
-                Chăm sóc
-              </Link>
-              <Link to="/cart" className="nav-link hover:text-yellow-500 transition-colors">
-                Giỏ hàng
-              </Link>
-              
-              {user ? (
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <User size={20} className="text-gray-600" />
-                    <span className="font-medium">
-                      {user.isAdmin ? 'Admin' : user.name}
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="px-6 py-2 bg-black text-white rounded-full hover:bg-red-600 transition-colors flex items-center space-x-2"
+
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex items-center space-x-8">
+                {navLinks.map(link => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className="nav-link hover:text-yellow-500 transition-colors"
                   >
-                    <span>Đăng xuất</span>
-                  </button>
-                  {user.isAdmin && (
-                    <Link
-                      to="/admin"
-                      className="px-6 py-2 bg-yellow-500 text-black rounded-full hover:bg-yellow-400 transition-colors"
+                    {link.label}
+                  </Link>
+                ))}
+                
+                {user ? (
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <User size={20} className="text-gray-600" />
+                      <span className="font-medium">
+                        {user.isAdmin ? 'Admin' : user.name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="px-6 py-2 bg-black text-white rounded-full hover:bg-red-600 transition-colors"
                     >
-                      Quản lý
-                    </Link>
-                  )}
+                      Đăng xuất
+                    </button>
+                    {user.isAdmin && (
+                      <Link
+                        to="/admin"
+                        className="px-6 py-2 bg-yellow-500 text-black rounded-full hover:bg-yellow-400 transition-colors"
+                      >
+                        Quản lý
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="px-6 py-2 bg-black text-white rounded-full hover:bg-yellow-500 transition-colors"
+                  >
+                    Đăng nhập
+                  </Link>
+                )}
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
+              </button>
+            </div>
+
+            {/* Mobile Navigation */}
+            <div
+              className={`fixed inset-0 z-50 md:hidden transition-transform duration-300 transform ${
+                isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+              }`}
+            >
+              <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
+              <div className="fixed right-0 top-0 bottom-0 w-64 bg-white shadow-xl flex flex-col">
+                {/* Mobile Menu Header */}
+                <div className="p-4 border-b flex justify-between items-center">
+                  <span className="text-xl font-bold">Menu</span>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
-              ) : (
-                <Link
-                  to="/login"
-                  className="px-6 py-2 bg-black text-white rounded-full hover:bg-yellow-500 transition-colors"
-                >
-                  Đăng nhập
-                </Link>
-              )}
+
+                {/* Mobile Menu Links */}
+                <div className="flex-1 overflow-y-auto py-4">
+                  <div className="flex flex-col space-y-1">
+                    {navLinks.map(link => (
+                      <Link
+                        key={link.path}
+                        to={link.path}
+                        className="px-4 py-3 hover:bg-gray-100 transition-colors flex items-center space-x-2"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span>{link.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+
+                  {/* User Section in Mobile Menu */}
+                  <div className="border-t mt-4 pt-4 px-4">
+                    {user ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <User size={20} className="text-gray-600" />
+                          <span className="font-medium">
+                            {user.isAdmin ? 'Admin' : user.name}
+                          </span>
+                        </div>
+                        {user.isAdmin && (
+                          <Link
+                            to="/admin"
+                            className="block w-full px-4 py-2 bg-yellow-500 text-black rounded-lg text-center hover:bg-yellow-400 transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            Quản lý
+                          </Link>
+                        )}
+                        <button
+                          onClick={handleLogout}
+                          className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-red-600 transition-colors"
+                        >
+                          Đăng xuất
+                        </button>
+                      </div>
+                    ) : (
+                      <Link
+                        to="/login"
+                        className="block w-full px-4 py-2 bg-black text-white rounded-lg text-center hover:bg-yellow-500 transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Đăng nhập
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </nav>
@@ -180,6 +283,7 @@ const Layout = ({ children }) => {
           <div className="border-t mt-8 pt-8 text-center">
             <p> 2024 <span className="font-bold">MT<span className="text-yellow-500">Shop</span></span>. Tất cả các quyền được bảo lưu.</p>
           </div>
+         
         </div>
       </footer>
     </div>
@@ -218,6 +322,7 @@ export default function App() {
             <Route path="/return-policy" element={<ReturnPolicy />} />
             <Route path="/new-manager" element={<NewsManager/>}/>
             <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <ToastContainer />
         </Layout>

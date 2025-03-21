@@ -316,6 +316,7 @@ export default function Cart() {
                   <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Sản phẩm</th>
                   <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Size</th>
                   <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Màu sắc</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Số lượng</th>
                   <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Giá</th>
                   <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Giảm giá</th>
                   <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Thành tiền</th>
@@ -325,7 +326,7 @@ export default function Cart() {
               <tbody className="divide-y divide-gray-200">
                 {cartItems.map((item, index) => {
                   const discount = calculateItemDiscount(item);
-                  const finalPrice = item.price - discount;
+                  const finalPrice = (item.price - discount) * item.quantity;
                   
                   return (
                     <tr key={index}>
@@ -337,6 +338,35 @@ export default function Cart() {
                       </td>
                       <td className="px-6 py-4">{item.size}</td>
                       <td className="px-6 py-4">{item.color}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => {
+                              const newCartItems = [...cartItems];
+                              if (newCartItems[index].quantity > 1) {
+                                newCartItems[index].quantity -= 1;
+                                setCartItems(newCartItems);
+                                localStorage.setItem("cart", JSON.stringify(newCartItems));
+                              }
+                            }}
+                            className="w-8 h-8 border rounded-lg flex items-center justify-center hover:bg-gray-100"
+                          >
+                            -
+                          </button>
+                          <span className="w-8 text-center">{item.quantity}</span>
+                          <button
+                            onClick={() => {
+                              const newCartItems = [...cartItems];
+                              newCartItems[index].quantity += 1;
+                              setCartItems(newCartItems);
+                              localStorage.setItem("cart", JSON.stringify(newCartItems));
+                            }}
+                            className="w-8 h-8 border rounded-lg flex items-center justify-center hover:bg-gray-100"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 font-medium">
                         {new Intl.NumberFormat('vi-VN', {
                           style: 'currency',
