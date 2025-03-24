@@ -7,7 +7,7 @@ export default function About() {
       {/* Hero Section */}
       <div className="relative h-[400px] rounded-xl overflow-hidden mb-12">
         <img
-          src="/about-hero.jpg"
+          src="https://res.cloudinary.com/dv8e9h3o7/image/upload/v1742565897/dfc55080-9333-4505-94d7-4c3f5e1a0f83_psxkp8.webp"
           alt="MT Shop Store"
           className="w-full h-full object-cover"
         />
@@ -54,7 +54,7 @@ export default function About() {
             <MapPin className="w-6 h-6 text-yellow-500 flex-shrink-0" />
             <div>
               <h3 className="font-bold mb-2">Địa chỉ</h3>
-              <p className="text-gray-600">123 Đường ABC, Quận XYZ, TP.HCM</p>
+              <p className="text-gray-600">Thường Tín, Hà Nội</p>
             </div>
           </div>
           <div className="flex items-start space-x-4">

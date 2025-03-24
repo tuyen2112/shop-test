@@ -1,6 +1,16 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { Facebook, Instagram, Youtube, Phone, Mail, MapPin, User, Menu, X } from 'lucide-react';
+import {
+  Facebook,
+  Instagram,
+  Youtube,
+  Phone,
+  Mail,
+  MapPin,
+  User,
+  Menu,
+  X,
+} from "lucide-react";
 import Home from "./components/Home/Home";
 import Detail from "./components/Detail/Detail";
 import LoginPage from "./components/Login/LoginPage";
@@ -18,17 +28,19 @@ import Terms from "./components/Policy/Terms";
 import Shipping from "./components/Policy/Shipping";
 import "./App.css";
 import ReturnPolicy from "./components/Policy/ReturnPolicy";
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom';
-import ProtectedAdminRoute from './components/Admin/ProtectedAdminRoute';
+import { AuthProvider } from './contexts/auth-provider';
+import { useAuth } from './contexts/useAuth';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
+
 import NewsManager from "./components/News/NewsManager";
 import NewsDetail from "./components/News/NewsDetail";
 import ProductDetail from "./components/Detail/ProductDetail";
 import NotFound from "./components/NotFound/NotFound";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
+import { FaCopyright } from "react-icons/fa";
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -40,22 +52,22 @@ const Layout = ({ children }) => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLogout = () => {
     logout();
     setIsMobileMenuOpen(false);
-    navigate('/');
+    navigate("/");
   };
 
   const navLinks = [
-    { path: '/', label: 'Trang chủ' },
-    { path: '/detail', label: 'Sản phẩm' },
-    { path: '/news', label: 'Tin tức' },
-    { path: '/take-care', label: 'Chăm sóc' },
-    { path: '/cart', label: 'Giỏ hàng' },
+    { path: "/", label: "Trang chủ" },
+    { path: "/detail", label: "Sản phẩm" },
+    { path: "/news", label: "Tin tức" },
+    { path: "/take-care", label: "Chăm sóc" },
+    { path: "/cart", label: "Giỏ hàng" },
   ];
 
   return (
@@ -65,33 +77,42 @@ const Layout = ({ children }) => {
         <div className="bg-black text-white py-2">
           <div className="container mx-auto px-4 flex justify-between items-center text-sm">
             <div className="flex items-center space-x-4">
-              <a href="tel:1900123456" className="flex items-center hover:text-yellow-400">
+              <a
+                href="tel:1900123456"
+                className="flex items-center hover:text-yellow-400"
+              >
                 <Phone size={16} className="mr-2" />
                 1900 123 456
               </a>
-              <a href="mailto:support@mtshop.com" className="flex items-center hover:text-yellow-400">
+              <a
+                href="mailto:support@mtshop.com"
+                className="flex items-center hover:text-yellow-400"
+              >
                 <Mail size={16} className="mr-2" />
                 support@mtshop.com
               </a>
             </div>
-          
           </div>
         </div>
 
         {/* Main navigation */}
-        <nav className={`sticky top-0 z-40 w-full bg-white transition-all duration-300 ${
-          isScrolled ? 'shadow-md' : ''
-        }`}>
+        <nav
+          className={`sticky top-0 z-40 w-full bg-white transition-all duration-300 ${
+            isScrolled ? "shadow-md" : ""
+          }`}
+        >
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16 md:h-20">
               {/* Logo */}
               <Link to="/" className="flex items-center">
-                <span className="text-2xl font-bold">MT<span className="text-yellow-500">Shop</span></span>
+                <span className="text-2xl font-bold">
+                  MT<span className="text-yellow-500">Shop</span>
+                </span>
               </Link>
 
               {/* Desktop Navigation */}
               <div className="hidden md:flex items-center space-x-8">
-                {navLinks.map(link => (
+                {navLinks.map((link) => (
                   <Link
                     key={link.path}
                     to={link.path}
@@ -100,13 +121,13 @@ const Layout = ({ children }) => {
                     {link.label}
                   </Link>
                 ))}
-                
+
                 {user ? (
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <User size={20} className="text-gray-600" />
                       <span className="font-medium">
-                        {user.isAdmin ? 'Admin' : user.name}
+                        {user.isAdmin ? "Admin" : user.name}
                       </span>
                     </div>
                     <button
@@ -150,10 +171,13 @@ const Layout = ({ children }) => {
             {/* Mobile Navigation */}
             <div
               className={`fixed inset-0 z-50 md:hidden transition-transform duration-300 transform ${
-                isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+                isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
               }`}
             >
-              <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50"
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
               <div className="fixed right-0 top-0 bottom-0 w-64 bg-white shadow-xl flex flex-col">
                 {/* Mobile Menu Header */}
                 <div className="p-4 border-b flex justify-between items-center">
@@ -169,7 +193,7 @@ const Layout = ({ children }) => {
                 {/* Mobile Menu Links */}
                 <div className="flex-1 overflow-y-auto py-4">
                   <div className="flex flex-col space-y-1">
-                    {navLinks.map(link => (
+                    {navLinks.map((link) => (
                       <Link
                         key={link.path}
                         to={link.path}
@@ -188,7 +212,7 @@ const Layout = ({ children }) => {
                         <div className="flex items-center space-x-2">
                           <User size={20} className="text-gray-600" />
                           <span className="font-medium">
-                            {user.isAdmin ? 'Admin' : user.name}
+                            {user.isAdmin ? "Admin" : user.name}
                           </span>
                         </div>
                         {user.isAdmin && (
@@ -224,9 +248,7 @@ const Layout = ({ children }) => {
         </nav>
       </header>
 
-      <main className="flex-grow">
-        {children}
-      </main>
+      <main className="flex-grow">{children}</main>
 
       <footer className="bg-gray-100">
         <div className="container mx-auto px-4 py-12">
@@ -234,40 +256,94 @@ const Layout = ({ children }) => {
             <div>
               <h3 className="text-lg font-bold mb-4">Về MT Shop</h3>
               <ul className="space-y-2">
-                <li><Link to="/about" className="hover:text-yellow-500">Giới thiệu</Link></li>
-                <li><Link to="/news" className="hover:text-yellow-500">Tin tức</Link></li>
-                <li><Link to="/contact" className="hover:text-yellow-500">Liên hệ</Link></li>
+                <li>
+                  <Link to="/about" className="hover:text-yellow-500">
+                    Giới thiệu
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/news" className="hover:text-yellow-500">
+                    Tin tức
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:text-yellow-500">
+                    Liên hệ
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-bold mb-4">Chính sách</h3>
               <ul className="space-y-2">
-                <li><Link to="/privacy" className="hover:text-yellow-500">Chính sách bảo mật</Link></li>
-                <li><Link to="/terms" className="hover:text-yellow-500">Điều khoản sử dụng</Link></li>
-                <li><Link to="/shipping" className="hover:text-yellow-500">Chính sách vận chuyển</Link></li>
+                <li>
+                  <Link to="/privacy" className="hover:text-yellow-500">
+                    Chính sách bảo mật
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/terms" className="hover:text-yellow-500">
+                    Điều khoản sử dụng
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/shipping" className="hover:text-yellow-500">
+                    Chính sách vận chuyển
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-bold mb-4">Hỗ trợ khách hàng</h3>
               <ul className="space-y-2">
-                <li><Link to="/take-care" className="hover:text-yellow-500">Hướng dẫn chăm sóc</Link></li>
-                <li><Link to="/size-guide" className="hover:text-yellow-500">Hướng dẫn chọn size</Link></li>
-                <li><Link to="/faq" className="hover:text-yellow-500">Câu hỏi thường gặp</Link></li>
+                <li>
+                  <Link to="/take-care" className="hover:text-yellow-500">
+                    Hướng dẫn chăm sóc
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/size-guide" className="hover:text-yellow-500">
+                    Hướng dẫn chọn size
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/faq" className="hover:text-yellow-500">
+                    Câu hỏi thường gặp
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-bold mb-4">Kết nối với chúng tôi</h3>
               <div className="flex space-x-4">
-                <a href="#" className="text-blue-600 hover:text-blue-700">
+                <a
+                  href="https://www.facebook.com/nguyenminh.tuyen.7731"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-700"
+                >
                   <Facebook size={24} />
                 </a>
-                <a href="#" className="text-pink-600 hover:text-pink-700">
+
+                <a
+                  href="https://www.instagram.com/tnz2k"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pink-600 hover:text-pink-700"
+                >
                   <Instagram size={24} />
                 </a>
-                <a href="#" className="text-red-600 hover:text-red-700">
+
+                <a
+                  href="https://www.youtube.com/@nguyenminhtuyen6351"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-600 hover:text-red-700"
+                >
                   <Youtube size={24} />
                 </a>
               </div>
+
               <div className="mt-4">
                 <div className="flex items-center space-x-2 mb-2">
                   <MapPin size={16} />
@@ -281,16 +357,21 @@ const Layout = ({ children }) => {
             </div>
           </div>
           <div className="border-t mt-8 pt-8 text-center">
-            <p> 2024 <span className="font-bold">MT<span className="text-yellow-500">Shop</span></span>. Tất cả các quyền được bảo lưu.</p>
+            <p className="text-sm flex items-center justify-center gap-1">
+              Copyright <FaCopyright className="text-black" /> 2023
+              <span className="font-bold">
+                MT<span className="text-yellow-500">Shop</span>
+              </span>
+              .
+            </p>
           </div>
-         
         </div>
       </footer>
     </div>
   );
 };
 
-export default function App() {
+function App() {
   return (
     <Router>
       <AuthProvider>
@@ -300,18 +381,10 @@ export default function App() {
             <Route path="/detail" element={<Detail />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/take-care" element={<TakeCare/>}/>
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedAdminRoute>
-                  <AdminProductPage />
-                </ProtectedAdminRoute>
-              } 
-            />
+            <Route path="/take-care" element={<TakeCare />} />
+            <Route path="/admin" element={<AdminProductPage />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/news" element={<News />} />
-            <Route path="/news/:id" element={<NewsDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/size-guide" element={<SizeGuide />} />
             <Route path="/faq" element={<FAQ />} />
@@ -320,7 +393,8 @@ export default function App() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/shipping" element={<Shipping />} />
             <Route path="/return-policy" element={<ReturnPolicy />} />
-            <Route path="/new-manager" element={<NewsManager/>}/>
+            <Route path="/news-manager" element={<NewsManager />} />
+            <Route path="/news/:id" element={<NewsDetail />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -330,3 +404,5 @@ export default function App() {
     </Router>
   );
 }
+
+export default App;

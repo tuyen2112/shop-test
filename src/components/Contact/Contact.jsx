@@ -109,14 +109,13 @@ export default function Contact() {
 
           {/* Bản đồ */}
           <div className="rounded-xl overflow-hidden h-[300px]">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3726.989874991757!2d105.85874631541366!3d20.89999098607444!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135b2b7f0b0f0f9%3A0x9b0f0f0f0f0f0f0f!2zVGjGsOG7nW5nIFTDrW4sIEjDoCBO4buZaSwgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1625123456789!5m2!1svi!2s"
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14912.050300061546!2d105.85227359318887!3d20.871543391613567!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135b22e073435a7%3A0xeed8af7828b2da7a!2zdHQuIFRoxrDhu51uZyBUw61uLCBUaMaw4budbmcgVMOtbiwgSMOgIE7hu5lpLCBWaeG7h3QgTmFt!5e0!3m2!1svi!2s!4v1742566105530!5m2!1svi!2s" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
               width="100%"
               height="100%"
               style={{ border: 0 }}
               allowFullScreen=""
-              loading="lazy"
-            ></iframe>
+              loading="lazy">
+            </iframe>
           </div>
         </div>
       </div>

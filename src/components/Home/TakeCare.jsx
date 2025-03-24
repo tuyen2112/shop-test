@@ -1,9 +1,17 @@
 import React from "react";
-import { Phone, Mail, Truck, RefreshCcw, Ruler, Clock, ArrowRight } from 'lucide-react';
+import { Phone, RefreshCcw, Ruler,ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function TakeCare() {
   const navigate = useNavigate();
+
+  const handleContactClick = () => {
+    window.open('https://www.facebook.com/mtshop', '_blank');
+  };
+
+  const handleSizeGuideClick = () => {
+    navigate('/size-guide');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -25,7 +33,10 @@ export default function TakeCare() {
               Đồng hành cùng bạn trong mọi trải nghiệm mua sắm
             </p>
             <div className="flex gap-4 animate-fade-in-up delay-300">
-              <button className="px-8 py-4 bg-yellow-400 text-black rounded-full font-medium hover:bg-yellow-300 transition-all duration-300 flex items-center group">
+              <button 
+                onClick={handleContactClick}
+                className="px-8 py-4 bg-yellow-400 text-black rounded-full font-medium hover:bg-yellow-300 transition-all duration-300 flex items-center group"
+              >
                 Liên hệ ngay
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -45,7 +56,7 @@ export default function TakeCare() {
             <p className="text-gray-600 mb-6 leading-relaxed">
               Đội ngũ tư vấn viên chuyên nghiệp luôn sẵn sàng hỗ trợ bạn mọi lúc mọi nơi
             </p>
-            <p className="text-2xl font-bold text-yellow-500">1800 1234</p>
+            <p className="text-2xl font-bold text-yellow-500">1800 123 456</p>
             <p className="text-gray-500">(Miễn phí cuộc gọi)</p>
           </div>
 
@@ -57,7 +68,10 @@ export default function TakeCare() {
             <p className="text-gray-600 mb-6 leading-relaxed">
               Tư vấn kỹ lưỡng để bạn chọn được size phù hợp nhất với dáng người
             </p>
-            <button className="text-yellow-500 font-medium flex items-center group">
+            <button 
+              onClick={handleSizeGuideClick}
+              className="text-yellow-500 font-medium flex items-center group"
+            >
               Xem hướng dẫn chi tiết
               <ArrowRight className="ml-2 group-hover:translate-x-2 transition-transform" />
             </button>
@@ -108,9 +122,6 @@ export default function TakeCare() {
             ))}
           </div>
         </div>
-
-        {/* Contact Section */}
-        
       </div>
     </div>
   );
